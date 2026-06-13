@@ -1566,9 +1566,9 @@
      (branch و path تقدر تخليهم زي ما هم)
   ==================================================================== */
         const SYNC_HARDCODE = {
-          token: "",
-          owner: "",
-          repo: "",
+          token: "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",
+          owner: "mohammad1424",
+          repo: "MyDepts",
           branch: "main",
           path: "data.json",
         };
@@ -1581,7 +1581,8 @@
             return null;
           }
         }
-        let sync = Object.assign({}, SYNC_HARDCODE, readObj(SKEY) || {});
+        let sync = Object.assign({}, readObj(SKEY)||{});
+Object.keys(SYNC_HARDCODE).forEach(k=>{ if(SYNC_HARDCODE[k]) sync[k]=SYNC_HARDCODE[k]; });
         let syncSha = null,
           pushTimer = null,
           busy = false;
