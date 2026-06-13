@@ -1,0 +1,2890 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>دفتر الديون والمحافظ والمصاريف</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --paper: #f1f3f6;
+        --card: #ffffff;
+        --ink: #1c2530;
+        --muted: #6a7682;
+        --line: #e4e8ee;
+        --credit: #0f9d7a;
+        --credit-soft: #e4f5ef;
+        --debit: #d2603a;
+        --debit-soft: #fbebe4;
+        --exp: #7a4fb5;
+        --exp-soft: #efe7f8;
+        --net: #22304a;
+        --focus: #3b6fe0;
+        --shadow:
+          0 1px 2px rgba(28, 37, 48, 0.04), 0 8px 24px rgba(28, 37, 48, 0.06);
+        --radius: 16px;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        font-family: "Tajawal", "Segoe UI", Tahoma, system-ui, sans-serif;
+        background: var(--paper);
+        color: var(--ink);
+        line-height: 1.5;
+        -webkit-font-smoothing: antialiased;
+        padding: clamp(14px, 3vw, 40px) clamp(12px, 3vw, 24px) 80px;
+      }
+      .wrap {
+        max-width: 860px;
+        margin: 0 auto;
+      }
+      .topbar {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 16px;
+      }
+      .mark {
+        width: 42px;
+        height: 42px;
+        border-radius: 12px;
+        flex: 0 0 auto;
+        background: linear-gradient(150deg, var(--net), #33476b);
+        display: grid;
+        place-items: center;
+        color: #fff;
+        font-weight: 800;
+        font-size: 20px;
+        box-shadow: var(--shadow);
+      }
+      .topbar h1 {
+        font-size: 20px;
+        font-weight: 800;
+        margin: 0;
+        letter-spacing: -0.01em;
+      }
+      .topbar p {
+        margin: 1px 0 0;
+        font-size: 12.5px;
+        color: var(--muted);
+        font-weight: 500;
+      }
+
+      .tabs {
+        display: flex;
+        gap: 6px;
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        padding: 5px;
+        margin-bottom: 18px;
+        box-shadow: var(--shadow);
+      }
+      .tabs button {
+        flex: 1;
+        font-family: inherit;
+        font-size: 14px;
+        font-weight: 700;
+        cursor: pointer;
+        border: none;
+        background: transparent;
+        color: var(--muted);
+        padding: 10px;
+        border-radius: 8px;
+        transition: 0.15s;
+      }
+      .tabs button.active {
+        background: var(--net);
+        color: #fff;
+      }
+      .page[hidden] {
+        display: none;
+      }
+
+      .total-strip {
+        background: linear-gradient(135deg, #222f49, #33476b);
+        color: #fff;
+        border-radius: var(--radius);
+        padding: 16px 20px;
+        box-shadow: var(--shadow);
+        margin-bottom: 18px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+      .total-strip .lbl {
+        font-size: 12.5px;
+        opacity: 0.8;
+        font-weight: 600;
+        margin: 0;
+      }
+      .total-strip .val {
+        font-size: clamp(24px, 5.5vw, 32px);
+        font-weight: 800;
+        margin: 2px 0 0;
+      }
+      .total-strip .split {
+        font-size: 12.5px;
+        opacity: 0.85;
+        font-weight: 600;
+        text-align: end;
+      }
+
+      .panel {
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        padding: clamp(16px, 3vw, 24px);
+        box-shadow: var(--shadow);
+        margin-bottom: 18px;
+      }
+      .panel h2 {
+        font-size: 15px;
+        font-weight: 800;
+        margin: 0 0 14px;
+      }
+
+      .acct-panel[data-acct="personal"] {
+        --accent: #3d4e78;
+        --accent-soft: #e8ecf5;
+      }
+      .acct-panel[data-acct="savings"] {
+        --accent: #a9802e;
+        --accent-soft: #f6eedc;
+      }
+      .acct-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+      .acct-label {
+        font-size: 13px;
+        color: var(--muted);
+        font-weight: 600;
+        margin: 0 0 2px;
+      }
+      .acct-balance {
+        font-size: clamp(24px, 5.5vw, 34px);
+        font-weight: 800;
+        color: var(--accent);
+        margin: 0;
+        line-height: 1.1;
+      }
+      .acct-breakdown {
+        font-size: 12.5px;
+        color: var(--muted);
+        font-weight: 600;
+        margin: 6px 0 0;
+        display: flex;
+        gap: 14px;
+      }
+      .acct-breakdown b {
+        color: var(--ink);
+        font-weight: 700;
+      }
+      .acct-actions {
+        display: flex;
+        gap: 8px;
+      }
+      .chip {
+        font-family: inherit;
+        font-size: 13.5px;
+        font-weight: 700;
+        cursor: pointer;
+        border-radius: 9px;
+        padding: 9px 14px;
+        border: 1.5px solid var(--line);
+        background: #fff;
+        color: var(--ink);
+        transition: 0.15s;
+      }
+      .chip:hover {
+        border-color: var(--accent);
+        color: var(--accent);
+      }
+      .chip.active {
+        background: var(--accent);
+        border-color: var(--accent);
+        color: #fff;
+      }
+      .acct-form {
+        display: none;
+        margin-top: 14px;
+        padding-top: 14px;
+        border-top: 1px solid var(--line);
+      }
+      .acct-form.show {
+        display: block;
+      }
+      .acct-moves {
+        margin-top: 14px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        max-height: 230px;
+        overflow: auto;
+      }
+      .move {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        font-size: 13.5px;
+        padding: 8px 10px;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+      }
+      .move__amt {
+        font-weight: 800;
+        white-space: nowrap;
+      }
+      .move__amt.up {
+        color: var(--credit);
+      }
+      .move__amt.down {
+        color: var(--debit);
+      }
+      .move__label {
+        flex: 1;
+        min-width: 0;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .move__form {
+        font-size: 10.5px;
+        font-weight: 800;
+        padding: 1px 7px;
+        border-radius: 12px;
+        background: #eef1f5;
+        color: #54616e;
+        white-space: nowrap;
+      }
+      .move__date {
+        font-size: 12px;
+        color: var(--muted);
+        white-space: nowrap;
+      }
+      .move__tag {
+        font-size: 10.5px;
+        font-weight: 800;
+        padding: 1px 7px;
+        border-radius: 12px;
+        background: var(--accent-soft, #eef1f5);
+        color: var(--accent, #54616e);
+        white-space: nowrap;
+      }
+      .btn--acct {
+        background: var(--accent);
+        color: #fff;
+      }
+
+      .hero__net-label {
+        font-size: 13px;
+        color: var(--muted);
+        font-weight: 600;
+        margin: 0 0 2px;
+      }
+      .hero__net {
+        font-size: clamp(24px, 5.5vw, 36px);
+        font-weight: 800;
+        letter-spacing: -0.02em;
+        margin: 0;
+        line-height: 1.1;
+      }
+      .hero__hint {
+        font-size: 12.5px;
+        color: var(--muted);
+        margin: 6px 0 0;
+      }
+      .bar {
+        margin-top: 18px;
+        height: 14px;
+        border-radius: 8px;
+        background: var(--line);
+        display: flex;
+        overflow: hidden;
+      }
+      .bar__credit {
+        background: var(--credit);
+        height: 100%;
+        transition: width 0.35s ease;
+      }
+      .bar__debit {
+        background: var(--debit);
+        height: 100%;
+        transition: width 0.35s ease;
+      }
+      .legend {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 10px;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+      .legend__item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 13.5px;
+        font-weight: 600;
+      }
+      .dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        flex: 0 0 auto;
+      }
+      .dot--c {
+        background: var(--credit);
+      }
+      .dot--d {
+        background: var(--debit);
+      }
+      .legend__val {
+        color: var(--muted);
+        font-weight: 700;
+      }
+
+      .sec-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin: 4px 2px 12px;
+      }
+      .sec-head h2 {
+        font-size: 16px;
+        font-weight: 800;
+        margin: 0;
+      }
+      .btn {
+        font-family: inherit;
+        font-size: 15px;
+        font-weight: 700;
+        cursor: pointer;
+        border-radius: 10px;
+        padding: 11px 18px;
+        border: 1.5px solid transparent;
+        transition: 0.15s;
+      }
+      .btn--primary {
+        background: var(--net);
+        color: #fff;
+      }
+      .btn--primary:hover {
+        background: #2c3e5e;
+      }
+      .btn--exp {
+        background: var(--exp);
+        color: #fff;
+      }
+      .btn--ghost {
+        background: transparent;
+        border-color: var(--line);
+        color: var(--muted);
+      }
+      .btn--ghost:hover {
+        border-color: var(--muted);
+        color: var(--ink);
+      }
+      .btn:focus-visible {
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(59, 111, 224, 0.3);
+      }
+      .btn--sm {
+        padding: 9px 14px;
+        font-size: 14px;
+      }
+      .btn--block {
+        display: block;
+        width: 100%;
+        text-align: center;
+        margin-bottom: 10px;
+      }
+
+      .controls {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        margin-bottom: 12px;
+        flex-wrap: wrap;
+      }
+      .search {
+        flex: 1;
+        min-width: 160px;
+        position: relative;
+      }
+      .search input {
+        width: 100%;
+        font-family: inherit;
+        font-size: 14.5px;
+        padding: 10px 38px 10px 13px;
+        border: 1.5px solid var(--line);
+        border-radius: 10px;
+        background: #fff;
+      }
+      .search input:focus {
+        outline: none;
+        border-color: var(--focus);
+        box-shadow: 0 0 0 3px rgba(59, 111, 224, 0.14);
+      }
+      .search svg {
+        position: absolute;
+        inset-inline-start: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--muted);
+      }
+      .filters {
+        display: flex;
+        gap: 6px;
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 4px;
+      }
+      .filters button {
+        font-family: inherit;
+        font-size: 13px;
+        font-weight: 700;
+        cursor: pointer;
+        border: none;
+        background: transparent;
+        color: var(--muted);
+        padding: 8px 12px;
+        border-radius: 7px;
+        transition: 0.15s;
+        white-space: nowrap;
+      }
+      .filters button.active {
+        background: var(--paper);
+        color: var(--ink);
+      }
+
+      .list {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .item {
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        padding: 14px 16px;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        box-shadow: var(--shadow);
+        border-inline-start: 4px solid var(--line);
+      }
+      .item[data-type="owedToMe"] {
+        border-inline-start-color: var(--credit);
+      }
+      .item[data-type="iOwe"] {
+        border-inline-start-color: var(--debit);
+      }
+      .item[data-exp] {
+        border-inline-start-color: var(--exp);
+      }
+      .item.settled {
+        opacity: 0.55;
+      }
+      .item.settled .item__amount,
+      .item.settled .item__person {
+        text-decoration: line-through;
+      }
+      .item__body {
+        flex: 1;
+        min-width: 0;
+      }
+      .item__person {
+        font-weight: 700;
+        font-size: 15.5px;
+        margin: 0;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .item__meta {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        flex-wrap: wrap;
+        margin-top: 3px;
+      }
+      .badge {
+        font-size: 11px;
+        font-weight: 800;
+        padding: 2px 9px;
+        border-radius: 20px;
+        white-space: nowrap;
+        background: #eef1f5;
+        color: #54616e;
+      }
+      .item__note {
+        font-size: 12.5px;
+        color: var(--muted);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 160px;
+      }
+      .item__date {
+        font-size: 12px;
+        color: var(--muted);
+      }
+      .item__money {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 2px;
+        flex: 0 0 auto;
+      }
+      .item__type {
+        font-size: 11px;
+        font-weight: 800;
+        padding: 1px 9px;
+        border-radius: 20px;
+      }
+      .item__type.c {
+        background: var(--credit-soft);
+        color: var(--credit);
+      }
+      .item__type.d {
+        background: var(--debit-soft);
+        color: var(--debit);
+      }
+      .item__type.e {
+        background: var(--exp-soft);
+        color: var(--exp);
+      }
+      .item__amount {
+        font-weight: 800;
+        font-size: 16px;
+        white-space: nowrap;
+      }
+      .item__amount.c {
+        color: var(--credit);
+      }
+      .item__amount.d {
+        color: var(--debit);
+      }
+      .item__amount.e {
+        color: var(--exp);
+      }
+      .item__actions {
+        display: flex;
+        gap: 4px;
+        flex: 0 0 auto;
+      }
+      .icon-btn {
+        width: 34px;
+        height: 34px;
+        border-radius: 9px;
+        border: 1px solid var(--line);
+        background: #fff;
+        cursor: pointer;
+        display: grid;
+        place-items: center;
+        color: var(--muted);
+        transition: 0.15s;
+      }
+      .icon-btn:hover {
+        color: var(--ink);
+        border-color: var(--muted);
+      }
+      .icon-btn.danger:hover {
+        color: var(--debit);
+        border-color: var(--debit);
+      }
+      .icon-btn svg {
+        width: 17px;
+        height: 17px;
+      }
+      .month-head {
+        font-size: 13px;
+        font-weight: 800;
+        color: var(--muted);
+        margin: 14px 4px 2px;
+        display: flex;
+        justify-content: space-between;
+      }
+      .month-head span:last-child {
+        color: var(--exp);
+      }
+
+      .empty {
+        text-align: center;
+        padding: 34px 20px;
+        color: var(--muted);
+      }
+      .empty strong {
+        display: block;
+        color: var(--ink);
+        font-size: 16px;
+        margin-bottom: 4px;
+      }
+      .empty span {
+        font-size: 13.5px;
+      }
+      .footnote {
+        text-align: center;
+        font-size: 12px;
+        color: var(--muted);
+        margin-top: 22px;
+      }
+      .footnote button {
+        background: none;
+        border: none;
+        color: var(--debit);
+        font-family: inherit;
+        font-size: 12px;
+        font-weight: 700;
+        cursor: pointer;
+        text-decoration: underline;
+      }
+      .cat-chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 7px;
+        margin-top: 10px;
+      }
+      .cat-chip {
+        font-size: 12px;
+        font-weight: 700;
+        background: var(--exp-soft);
+        color: var(--exp);
+        padding: 4px 11px;
+        border-radius: 20px;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+      }
+      @media (max-width: 560px) {
+        .grid {
+          grid-template-columns: 1fr;
+        }
+      }
+      .field {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+      .field label {
+        font-size: 12.5px;
+        font-weight: 700;
+        color: var(--muted);
+      }
+      .field input,
+      .field textarea {
+        font-family: inherit;
+        font-size: 15px;
+        color: var(--ink);
+        background: #fff;
+        border: 1.5px solid var(--line);
+        border-radius: 10px;
+        padding: 11px 13px;
+        width: 100%;
+        transition:
+          border-color 0.15s,
+          box-shadow 0.15s;
+      }
+      .field input:focus,
+      .field textarea:focus {
+        outline: none;
+        border-color: var(--focus);
+        box-shadow: 0 0 0 3px rgba(59, 111, 224, 0.14);
+      }
+      .date-row {
+        display: flex;
+        gap: 8px;
+      }
+      .date-row input {
+        flex: 1;
+      }
+      .today-btn {
+        font-family: inherit;
+        font-size: 13.5px;
+        font-weight: 700;
+        cursor: pointer;
+        border: 1.5px solid var(--line);
+        background: #fff;
+        color: var(--muted);
+        border-radius: 10px;
+        padding: 0 14px;
+        white-space: nowrap;
+        transition: 0.15s;
+      }
+      .today-btn:hover {
+        border-color: var(--focus);
+        color: var(--focus);
+      }
+      .seg {
+        display: flex;
+        background: var(--paper);
+        border: 1.5px solid var(--line);
+        border-radius: 10px;
+        padding: 4px;
+        gap: 4px;
+      }
+      .seg button {
+        flex: 1;
+        font-family: inherit;
+        font-size: 14px;
+        font-weight: 700;
+        cursor: pointer;
+        border: none;
+        background: transparent;
+        color: var(--muted);
+        padding: 9px;
+        border-radius: 7px;
+        transition: 0.15s;
+      }
+      .seg button[aria-pressed="true"][data-type="owedToMe"] {
+        background: var(--credit);
+        color: #fff;
+      }
+      .seg button[aria-pressed="true"][data-type="iOwe"] {
+        background: var(--debit);
+        color: #fff;
+      }
+      .seg button[aria-pressed="true"][data-acctval] {
+        background: var(--net);
+        color: #fff;
+      }
+      .seg button[aria-pressed="true"][data-form-val] {
+        background: var(--net);
+        color: #fff;
+      }
+      .form-actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 14px;
+        align-items: center;
+      }
+
+      .alloc {
+        margin-top: 12px;
+        border: 1.5px solid var(--line);
+        border-radius: 12px;
+        padding: 12px;
+        background: #fbfcfd;
+      }
+      .alloc__head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 8px;
+      }
+      .alloc__title {
+        font-size: 12.5px;
+        font-weight: 800;
+        color: var(--muted);
+      }
+      .alloc__remain {
+        font-size: 12px;
+        font-weight: 800;
+        padding: 2px 10px;
+        border-radius: 20px;
+      }
+      .alloc__remain.ok {
+        background: var(--credit-soft);
+        color: var(--credit);
+      }
+      .alloc__remain.bad {
+        background: var(--debit-soft);
+        color: var(--debit);
+      }
+      .alloc__row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 7px;
+      }
+      .alloc__row label {
+        flex: 1;
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--ink);
+      }
+      .alloc__row input {
+        width: 110px;
+        font-family: inherit;
+        font-size: 14px;
+        border: 1.5px solid var(--line);
+        border-radius: 8px;
+        padding: 8px 10px;
+        background: #fff;
+      }
+      .alloc__row input:focus {
+        outline: none;
+        border-color: var(--focus);
+        box-shadow: 0 0 0 3px rgba(59, 111, 224, 0.14);
+      }
+      .alloc__all {
+        font-family: inherit;
+        font-size: 12px;
+        font-weight: 700;
+        cursor: pointer;
+        border: 1px solid var(--line);
+        background: #fff;
+        color: var(--muted);
+        border-radius: 7px;
+        padding: 6px 9px;
+        white-space: nowrap;
+      }
+      .alloc__all:hover {
+        border-color: var(--focus);
+        color: var(--focus);
+      }
+
+      .modal {
+        position: fixed;
+        inset: 0;
+        z-index: 60;
+        display: flex;
+        align-items: flex-start;
+        justify-content: center;
+        padding: 24px 14px;
+        overflow: auto;
+      }
+      .modal[hidden] {
+        display: none;
+      }
+      .modal__overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(20, 28, 38, 0.55);
+      }
+      .modal__dialog {
+        position: relative;
+        background: var(--card);
+        border-radius: var(--radius);
+        box-shadow: 0 24px 60px rgba(20, 28, 38, 0.3);
+        width: 100%;
+        max-width: 560px;
+        padding: clamp(18px, 3vw, 26px);
+        margin-top: 16px;
+        animation: pop 0.18s ease;
+      }
+      @keyframes pop {
+        from {
+          opacity: 0;
+          transform: translateY(10px) scale(0.98);
+        }
+        to {
+          opacity: 1;
+          transform: none;
+        }
+      }
+      .modal__close {
+        position: absolute;
+        inset-inline-end: 14px;
+        top: 12px;
+        width: 34px;
+        height: 34px;
+        border-radius: 9px;
+        border: 1px solid var(--line);
+        background: #fff;
+        font-size: 20px;
+        line-height: 1;
+        color: var(--muted);
+        cursor: pointer;
+        transition: 0.15s;
+      }
+      .modal__close:hover {
+        color: var(--ink);
+        border-color: var(--muted);
+      }
+      .modal__dialog h2 {
+        font-size: 17px;
+        font-weight: 800;
+        margin: 0 0 16px;
+      }
+
+      .backup-note {
+        font-size: 13px;
+        color: var(--muted);
+        line-height: 1.7;
+        margin: 2px 0 16px;
+      }
+      .toast {
+        position: fixed;
+        inset-block-end: 22px;
+        inset-inline-start: 50%;
+        transform: translateX(50%) translateY(20px);
+        background: var(--ink);
+        color: #fff;
+        padding: 11px 20px;
+        border-radius: 10px;
+        font-size: 14px;
+        font-weight: 600;
+        opacity: 0;
+        pointer-events: none;
+        transition: 0.25s;
+        z-index: 80;
+        box-shadow: var(--shadow);
+        max-width: 90vw;
+        text-align: center;
+      }
+      .toast.show {
+        opacity: 1;
+        transform: translateX(50%) translateY(0);
+      }
+      @media (prefers-reduced-motion: reduce) {
+        * {
+          transition: none !important;
+        }
+        .modal__dialog {
+          animation: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <div class="topbar">
+        <div class="mark">د</div>
+        <div>
+          <h1>دفتر الديون والمحافظ والمصاريف</h1>
+          <p>كل شي محفوظ في جهازك فقط</p>
+        </div>
+      </div>
+
+      <div class="tabs" role="tablist">
+        <button data-tab="main" class="active">الديون والمحافظ</button>
+        <button data-tab="expenses">المصاريف</button>
+        <button data-tab="backup">نسخة احتياطية</button>
+      </div>
+
+      <!-- PAGE: MAIN -->
+      <div class="page" data-page="main">
+        <div class="total-strip">
+          <div>
+            <p class="lbl">إجمالي ما أملك الآن</p>
+            <p class="val" id="totalVal">—</p>
+          </div>
+          <div class="split" id="totalSplit"></div>
+        </div>
+
+        <section class="panel acct-panel" data-acct="personal">
+          <div class="acct-head">
+            <div>
+              <p class="acct-label">حسابي الخاص</p>
+              <p class="acct-balance" data-bal>—</p>
+              <p class="acct-breakdown">
+                <span>كاش: <b data-cash>—</b></span
+                ><span>بنك: <b data-bank>—</b></span>
+              </p>
+            </div>
+            <div class="acct-actions">
+              <button class="chip" data-kind="deposit">+ إيداع</button
+              ><button class="chip" data-kind="withdraw">− سحب</button>
+            </div>
+          </div>
+          <div class="acct-form" data-form>
+            <div class="field">
+              <label>الصورة</label>
+              <div class="seg" data-formseg>
+                <button type="button" data-form-val="cash" aria-pressed="true">
+                  كاش</button
+                ><button
+                  type="button"
+                  data-form-val="bank"
+                  aria-pressed="false"
+                >
+                  بنك
+                </button>
+              </div>
+            </div>
+            <div class="grid" style="margin-top: 12px">
+              <div class="field">
+                <label data-amount-label>مبلغ الإيداع (ر.س)</label
+                ><input
+                  data-amount
+                  type="number"
+                  step="0.01"
+                  min="0.01"
+                  inputmode="decimal"
+                  placeholder="0.00"
+                />
+              </div>
+              <div class="field">
+                <label>التاريخ (اختياري)</label>
+                <div class="date-row">
+                  <input data-date type="date" /><button
+                    type="button"
+                    class="today-btn"
+                    data-today
+                  >
+                    اليوم
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div class="field" style="margin-top: 12px">
+              <label>ملاحظة (اختياري)</label
+              ><input
+                data-label
+                autocomplete="off"
+                placeholder="راتب، تحويل..."
+              />
+            </div>
+            <div class="form-actions">
+              <button class="btn btn--acct" data-submit>حفظ</button
+              ><button class="btn btn--ghost" data-cancel>إلغاء</button>
+            </div>
+          </div>
+          <div class="acct-moves" data-moves></div>
+        </section>
+
+        <section class="panel acct-panel" data-acct="savings">
+          <div class="acct-head">
+            <div>
+              <p class="acct-label">الادخار</p>
+              <p class="acct-balance" data-bal>—</p>
+              <p class="acct-breakdown">
+                <span>كاش: <b data-cash>—</b></span
+                ><span>بنك: <b data-bank>—</b></span>
+              </p>
+            </div>
+            <div class="acct-actions">
+              <button class="chip" data-kind="deposit">+ إيداع</button
+              ><button class="chip" data-kind="withdraw">− سحب</button>
+            </div>
+          </div>
+          <div class="acct-form" data-form>
+            <div class="field">
+              <label>الصورة</label>
+              <div class="seg" data-formseg>
+                <button type="button" data-form-val="cash" aria-pressed="true">
+                  كاش</button
+                ><button
+                  type="button"
+                  data-form-val="bank"
+                  aria-pressed="false"
+                >
+                  بنك
+                </button>
+              </div>
+            </div>
+            <div class="grid" style="margin-top: 12px">
+              <div class="field">
+                <label data-amount-label>مبلغ الإيداع (ر.س)</label
+                ><input
+                  data-amount
+                  type="number"
+                  step="0.01"
+                  min="0.01"
+                  inputmode="decimal"
+                  placeholder="0.00"
+                />
+              </div>
+              <div class="field">
+                <label>التاريخ (اختياري)</label>
+                <div class="date-row">
+                  <input data-date type="date" /><button
+                    type="button"
+                    class="today-btn"
+                    data-today
+                  >
+                    اليوم
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div class="field" style="margin-top: 12px">
+              <label>ملاحظة (اختياري)</label
+              ><input
+                data-label
+                autocomplete="off"
+                placeholder="هدف ادخار، سحب طارئ..."
+              />
+            </div>
+            <div class="form-actions">
+              <button class="btn btn--acct" data-submit>حفظ</button
+              ><button class="btn btn--ghost" data-cancel>إلغاء</button>
+            </div>
+          </div>
+          <div class="acct-moves" data-moves></div>
+        </section>
+
+        <section class="panel">
+          <p class="hero__net-label">صافي الديون</p>
+          <p class="hero__net" id="netValue">—</p>
+          <p class="hero__hint" id="netHint"></p>
+          <div class="bar" aria-hidden="true">
+            <div class="bar__credit" id="barCredit" style="width: 50%"></div>
+            <div class="bar__debit" id="barDebit" style="width: 50%"></div>
+          </div>
+          <div class="legend">
+            <div class="legend__item">
+              <span class="dot dot--c"></span> لي
+              <span class="legend__val" id="sumCredit">0</span>
+            </div>
+            <div class="legend__item">
+              <span class="dot dot--d"></span> عليّ
+              <span class="legend__val" id="sumDebit">0</span>
+            </div>
+          </div>
+        </section>
+
+        <div class="sec-head">
+          <h2>الديون</h2>
+          <button class="btn btn--primary btn--sm" id="openAddDebt">
+            + دين جديد
+          </button>
+        </div>
+        <div class="controls">
+          <div class="search">
+            <svg
+              width="17"
+              height="17"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+            >
+              <circle cx="11" cy="11" r="7" />
+              <path d="m21 21-4.3-4.3" /></svg
+            ><input
+              id="searchInput"
+              type="search"
+              placeholder="ابحث باسم الشخص..."
+            />
+          </div>
+          <div class="filters" role="group" aria-label="تصفية">
+            <button data-filter="all" class="active">الكل</button
+            ><button data-filter="owedToMe">لي</button
+            ><button data-filter="iOwe">عليّ</button>
+          </div>
+        </div>
+        <div class="list" id="list"></div>
+        <p class="footnote">
+          البيانات محفوظة محلياً في متصفح هذا الجهاز.
+          <button id="clearAll">مسح الديون والمحافظ</button>
+        </p>
+      </div>
+
+      <!-- PAGE: EXPENSES -->
+      <div class="page" data-page="expenses" hidden>
+        <section class="panel">
+          <div class="acct-head">
+            <div>
+              <p class="acct-label">مصاريف هذا الشهر</p>
+              <p
+                class="acct-balance"
+                id="expMonthTotal"
+                style="color: var(--exp)"
+              >
+                —
+              </p>
+              <p class="acct-breakdown">
+                <span>الإجمالي كله: <b id="expAllTotal">—</b></span>
+              </p>
+            </div>
+            <button class="btn btn--exp btn--sm" id="openAddExp">
+              + مصروف
+            </button>
+          </div>
+          <div class="cat-chips" id="expCats"></div>
+        </section>
+        <div class="controls">
+          <div class="search">
+            <svg
+              width="17"
+              height="17"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+            >
+              <circle cx="11" cy="11" r="7" />
+              <path d="m21 21-4.3-4.3" /></svg
+            ><input
+              id="expSearch"
+              type="search"
+              placeholder="ابحث بالفئة أو الملاحظة..."
+            />
+          </div>
+        </div>
+        <div class="list" id="expList"></div>
+        <p class="footnote">
+          المصاريف تُخصم من المحفظة المختارة وتظهر في حركاتها.
+          <button id="clearExp">مسح المصاريف</button>
+        </p>
+      </div>
+
+      <!-- PAGE: BACKUP -->
+      <div class="page" data-page="backup" hidden>
+        <section class="panel">
+          <h2>المزامنة التلقائية (GitHub)</h2>
+          <p class="backup-note">
+            احفظ بياناتك في ملف داخل ريبو GitHub، وتتزامن تلقائياً بين كل
+            أجهزتك. للتفعيل الدائم على كل الأجهزة بدون إعادة إدخال: عدّل القيم
+            بأعلى الكود وارفع الملف. أو املأها هنا (تُحفظ على هذا الجهاز فقط).
+          </p>
+          <div class="field" style="margin-bottom: 10px">
+            <label for="syncToken">التوكن (token)</label
+            ><input
+              id="syncToken"
+              type="password"
+              autocomplete="off"
+              placeholder="ghp_... أو github_pat_..."
+            />
+          </div>
+          <div class="grid">
+            <div class="field">
+              <label for="syncOwner">اسم الحساب (owner)</label
+              ><input
+                id="syncOwner"
+                autocomplete="off"
+                placeholder="username"
+              />
+            </div>
+            <div class="field">
+              <label for="syncRepo">المستودع (repo)</label
+              ><input id="syncRepo" autocomplete="off" placeholder="my-debts" />
+            </div>
+          </div>
+          <div class="grid" style="margin-top: 12px">
+            <div class="field">
+              <label for="syncBranch">الفرع (branch)</label
+              ><input id="syncBranch" autocomplete="off" placeholder="main" />
+            </div>
+            <div class="field">
+              <label for="syncPath">مسار الملف (path)</label
+              ><input
+                id="syncPath"
+                autocomplete="off"
+                placeholder="data.json"
+              />
+            </div>
+          </div>
+          <div class="form-actions" style="flex-wrap: wrap">
+            <button class="btn btn--primary" id="syncSave">
+              حفظ الإعدادات
+            </button>
+            <button class="btn btn--ghost" id="syncPull">اسحب الآن</button>
+            <button class="btn btn--ghost" id="syncPush">ادفع الآن</button>
+          </div>
+          <p
+            class="backup-note"
+            id="syncStatus"
+            style="margin: 12px 0 0; font-weight: 700; color: var(--ink)"
+          ></p>
+        </section>
+        <section class="panel">
+          <h2>تصدير</h2>
+          <p class="backup-note">
+            ملف JSON يحتوي كل بياناتك (ديون + محافظ + مصاريف) — ارفعه على GitHub
+            كنسخة احتياطية واستورده لاحقاً. وملفات CSV للعرض في Excel.
+          </p>
+          <button class="btn btn--primary btn--block" id="exportJson">
+            تصدير نسخة كاملة (JSON)
+          </button>
+          <button class="btn btn--ghost btn--block" id="exportExpCsv">
+            تصدير المصاريف (CSV / Excel)
+          </button>
+          <button class="btn btn--ghost btn--block" id="exportDebtCsv">
+            تصدير الديون (CSV / Excel)
+          </button>
+          <button class="btn btn--ghost btn--block" id="exportMovesCsv">
+            تصدير حركات المحافظ (CSV / Excel)
+          </button>
+        </section>
+        <section class="panel">
+          <h2>استيراد</h2>
+          <p class="backup-note">
+            اختر ملف JSON صُدّر من هنا سابقاً. سيستبدل بياناتك الحالية بالكامل.
+          </p>
+          <button class="btn btn--ghost btn--block" id="importBtn">
+            استيراد من ملف JSON
+          </button>
+          <input
+            type="file"
+            id="importFile"
+            accept="application/json,.json"
+            hidden
+          />
+        </section>
+      </div>
+
+      <p class="footnote" style="margin-top: 6px">
+        يشتغل بدون إنترنت ومحلي بالكامل.
+      </p>
+    </div>
+
+    <!-- DEBT MODAL -->
+    <div class="modal" id="debtModal" hidden>
+      <div class="modal__overlay" data-close></div>
+      <div
+        class="modal__dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="formTitle"
+      >
+        <button class="modal__close" data-close aria-label="إغلاق">
+          &times;
+        </button>
+        <h2 id="formTitle">إضافة دين</h2>
+        <form id="debtForm">
+          <input type="hidden" id="editId" />
+          <div class="grid">
+            <div class="field">
+              <label for="person">الشخص</label
+              ><input
+                id="person"
+                autocomplete="off"
+                placeholder="مثال: عبدالله"
+                required
+              />
+            </div>
+            <div class="field">
+              <label for="amount">المبلغ (ر.س)</label
+              ><input
+                id="amount"
+                type="number"
+                step="0.01"
+                min="0.01"
+                inputmode="decimal"
+                placeholder="0.00"
+                required
+              />
+            </div>
+          </div>
+          <div class="field" style="margin-top: 12px">
+            <label>النوع</label>
+            <div class="seg" role="group" aria-label="نوع الدين" id="typeSeg">
+              <button type="button" data-type="owedToMe" aria-pressed="true">
+                لي (أسلّفت)</button
+              ><button type="button" data-type="iOwe" aria-pressed="false">
+                عليّ (تسلّفت)
+              </button>
+            </div>
+          </div>
+          <div class="alloc" id="allocBox">
+            <div class="alloc__head">
+              <span class="alloc__title" id="allocTitle"></span
+              ><span class="alloc__remain ok" id="allocRemain"></span>
+            </div>
+            <div id="allocRows"></div>
+          </div>
+          <div class="grid" style="margin-top: 12px">
+            <div class="field">
+              <label for="date">التاريخ (اختياري)</label>
+              <div class="date-row">
+                <input id="date" type="date" /><button
+                  type="button"
+                  class="today-btn"
+                  id="todayBtn"
+                >
+                  اليوم
+                </button>
+              </div>
+            </div>
+            <div class="field">
+              <label for="note">ملاحظة (اختياري)</label
+              ><input
+                id="note"
+                autocomplete="off"
+                placeholder="سبب الدين، موعد السداد..."
+              />
+            </div>
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn btn--primary" id="submitBtn">
+              حفظ</button
+            ><button type="button" class="btn btn--ghost" data-close>
+              إلغاء
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- EXPENSE MODAL -->
+    <div class="modal" id="expModal" hidden>
+      <div class="modal__overlay" data-close></div>
+      <div
+        class="modal__dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="expTitle"
+      >
+        <button class="modal__close" data-close aria-label="إغلاق">
+          &times;
+        </button>
+        <h2 id="expTitle">إضافة مصروف</h2>
+        <form id="expForm">
+          <input type="hidden" id="expEditId" />
+          <div class="grid">
+            <div class="field">
+              <label for="expCategory">الفئة</label
+              ><input
+                id="expCategory"
+                list="catList"
+                autocomplete="off"
+                placeholder="أكل، مواصلات، فواتير..."
+                required
+              />
+              <datalist id="catList">
+                <option value="أكل"></option>
+                <option value="مواصلات"></option>
+                <option value="فواتير"></option>
+                <option value="تسوق"></option>
+                <option value="صحة"></option>
+                <option value="ترفيه"></option>
+                <option value="اشتراكات"></option>
+                <option value="أخرى"></option>
+              </datalist>
+            </div>
+            <div class="field">
+              <label for="expAmount">المبلغ (ر.س)</label
+              ><input
+                id="expAmount"
+                type="number"
+                step="0.01"
+                min="0.01"
+                inputmode="decimal"
+                placeholder="0.00"
+                required
+              />
+            </div>
+          </div>
+          <div class="grid" style="margin-top: 12px">
+            <div class="field">
+              <label>من حساب</label>
+              <div class="seg" id="expAcctSeg">
+                <button
+                  type="button"
+                  data-acctval="personal"
+                  aria-pressed="true"
+                >
+                  حسابي الخاص</button
+                ><button
+                  type="button"
+                  data-acctval="savings"
+                  aria-pressed="false"
+                >
+                  الادخار
+                </button>
+              </div>
+            </div>
+            <div class="field">
+              <label>الصورة</label>
+              <div class="seg" id="expFormSeg">
+                <button type="button" data-form-val="cash" aria-pressed="true">
+                  كاش</button
+                ><button
+                  type="button"
+                  data-form-val="bank"
+                  aria-pressed="false"
+                >
+                  بنك
+                </button>
+              </div>
+            </div>
+          </div>
+          <div class="grid" style="margin-top: 12px">
+            <div class="field">
+              <label for="expDate">التاريخ (اختياري)</label>
+              <div class="date-row">
+                <input id="expDate" type="date" /><button
+                  type="button"
+                  class="today-btn"
+                  id="expTodayBtn"
+                >
+                  اليوم
+                </button>
+              </div>
+            </div>
+            <div class="field">
+              <label for="expNote">ملاحظة (اختياري)</label
+              ><input id="expNote" autocomplete="off" placeholder="تفاصيل..." />
+            </div>
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn btn--exp" id="expSubmitBtn">
+              حفظ</button
+            ><button type="button" class="btn btn--ghost" data-close>
+              إلغاء
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+      (function () {
+        "use strict";
+        const DKEY = "debt_ledger_v1",
+          MKEY = "wallet_moves_v1",
+          EKEY = "expenses_v1";
+        const $ = (s) => document.querySelector(s);
+        const ACCTS = ["personal", "savings"],
+          FORMS = ["cash", "bank"];
+        const ACCT_LABEL = { personal: "حسابي الخاص", savings: "الادخار" },
+          FORM_LABEL = { cash: "كاش", bank: "بنك" };
+
+        let entries = read(DKEY),
+          manual = read(MKEY),
+          expenses = read(EKEY);
+        let filter = "all",
+          search = "",
+          expSearchTxt = "",
+          formType = "owedToMe";
+
+        /* ====================================================================
+     مزامنة GitHub (تلقائي): البيانات تُحفظ في ملف داخل نفس الريبو.
+     عدّل القيم الثلاث التالية وارفع الملف — وبعدها كل شي تلقائي بين أجهزتك:
+       token : توكن GitHub بصلاحية الكتابة على هذا الريبو
+       owner : اسم حسابك في GitHub
+       repo  : اسم المستودع
+     (branch و path تقدر تخليهم زي ما هم)
+  ==================================================================== */
+        const SYNC_HARDCODE = {
+          token: "",
+          owner: "",
+          repo: "",
+          branch: "main",
+          path: "data.json",
+        };
+        const SKEY = "sync_cfg_v1";
+        function readObj(k) {
+          try {
+            const r = localStorage.getItem(k);
+            return r ? JSON.parse(r) : null;
+          } catch (e) {
+            return null;
+          }
+        }
+        let sync = Object.assign({}, SYNC_HARDCODE, readObj(SKEY) || {});
+        let syncSha = null,
+          pushTimer = null,
+          busy = false;
+        function syncReady() {
+          return !!(sync.token && sync.owner && sync.repo);
+        }
+
+        let fmt;
+        try {
+          fmt = new Intl.NumberFormat("ar-SA-u-nu-latn", {
+            style: "currency",
+            currency: "SAR",
+            maximumFractionDigits: 2,
+          });
+        } catch (e) {
+          fmt = {
+            format: (n) =>
+              (n || 0).toLocaleString("en-US", {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              }) + " ر.س",
+          };
+        }
+        const money = (n) => fmt.format(n || 0);
+        const r2 = (n) => Math.round((n || 0) * 100) / 100;
+
+        function read(k) {
+          try {
+            const r = localStorage.getItem(k);
+            return r ? JSON.parse(r) : [];
+          } catch (e) {
+            return [];
+          }
+        }
+        function persistLocal() {
+          try {
+            localStorage.setItem(DKEY, JSON.stringify(entries));
+            localStorage.setItem(MKEY, JSON.stringify(manual));
+            localStorage.setItem(EKEY, JSON.stringify(expenses));
+          } catch (e) {
+            toast("تعذّر الحفظ — افتح الملف من جهازك");
+          }
+        }
+        function persist() {
+          persistLocal();
+          schedulePush();
+        }
+
+        // ---------- GitHub sync ----------
+        function nowTime() {
+          try {
+            return new Date().toLocaleTimeString("ar-SA-u-nu-latn", {
+              hour: "2-digit",
+              minute: "2-digit",
+            });
+          } catch (e) {
+            return "";
+          }
+        }
+        function setSync(msg) {
+          const el = document.getElementById("syncStatus");
+          if (el) el.textContent = msg || "";
+        }
+        function b64encode(str) {
+          const bytes = new TextEncoder().encode(str);
+          let bin = "";
+          bytes.forEach((b) => (bin += String.fromCharCode(b)));
+          return btoa(bin);
+        }
+        function b64decode(b64) {
+          const bin = atob(b64.replace(/\n/g, ""));
+          const bytes = Uint8Array.from(bin, (c) => c.charCodeAt(0));
+          return new TextDecoder().decode(bytes);
+        }
+        function ghHeaders() {
+          return {
+            Authorization: "Bearer " + sync.token,
+            Accept: "application/vnd.github+json",
+            "X-GitHub-Api-Version": "2022-11-28",
+          };
+        }
+        function ghUrl() {
+          return `https://api.github.com/repos/${sync.owner}/${sync.repo}/contents/${sync.path.split("/").map(encodeURIComponent).join("/")}`;
+        }
+        function snapshot() {
+          return JSON.stringify(
+            {
+              version: 6,
+              exportedAt: new Date().toISOString(),
+              entries,
+              manual,
+              expenses,
+            },
+            null,
+            2,
+          );
+        }
+        function applyData(d) {
+          entries = Array.isArray(d.entries) ? d.entries : [];
+          manual = Array.isArray(d.manual) ? d.manual : [];
+          expenses = Array.isArray(d.expenses) ? d.expenses : [];
+        }
+
+        async function pull() {
+          if (!syncReady()) {
+            setSync("المزامنة غير مفعّلة");
+            return;
+          }
+          setSync("جارٍ السحب من GitHub...");
+          try {
+            const res = await fetch(
+              ghUrl() +
+                "?ref=" +
+                encodeURIComponent(sync.branch) +
+                "&t=" +
+                Date.now(),
+              { headers: ghHeaders(), cache: "no-store" },
+            );
+            if (res.status === 404) {
+              syncSha = null;
+              setSync("لا توجد بيانات على GitHub بعد — أول حفظ ينشئها");
+              return;
+            }
+            if (res.status === 401 || res.status === 403) {
+              setSync("التوكن غير صالح أو بدون صلاحية");
+              return;
+            }
+            if (!res.ok) throw new Error("HTTP " + res.status);
+            const j = await res.json();
+            syncSha = j.sha;
+            applyData(JSON.parse(b64decode(j.content || "")));
+            persistLocal();
+            render();
+            setSync("تم السحب ✓ " + nowTime());
+          } catch (e) {
+            setSync("فشل السحب: " + e.message);
+          }
+        }
+        async function refreshSha() {
+          try {
+            const res = await fetch(
+              ghUrl() +
+                "?ref=" +
+                encodeURIComponent(sync.branch) +
+                "&t=" +
+                Date.now(),
+              { headers: ghHeaders(), cache: "no-store" },
+            );
+            if (res.ok) {
+              const j = await res.json();
+              syncSha = j.sha;
+            } else if (res.status === 404) {
+              syncSha = null;
+            }
+          } catch (e) {}
+        }
+        async function push() {
+          if (!syncReady()) return;
+          if (busy) {
+            schedulePush();
+            return;
+          }
+          busy = true;
+          setSync("جارٍ الحفظ على GitHub...");
+          const send = async () => {
+            const body = {
+              message: "تحديث البيانات " + new Date().toISOString(),
+              content: b64encode(snapshot()),
+              branch: sync.branch,
+            };
+            if (syncSha) body.sha = syncSha;
+            return fetch(ghUrl(), {
+              method: "PUT",
+              headers: Object.assign(
+                { "Content-Type": "application/json" },
+                ghHeaders(),
+              ),
+              body: JSON.stringify(body),
+            });
+          };
+          try {
+            let res = await send();
+            if (res.status === 409) {
+              await refreshSha();
+              res = await send();
+            }
+            if (res.status === 401 || res.status === 403) {
+              setSync("التوكن غير صالح أو بدون صلاحية كتابة");
+              busy = false;
+              return;
+            }
+            if (!res.ok) throw new Error("HTTP " + res.status);
+            const j = await res.json();
+            syncSha = j.content && j.content.sha;
+            setSync("محفوظ على GitHub ✓ " + nowTime());
+          } catch (e) {
+            setSync("فشل الحفظ: " + e.message);
+          }
+          busy = false;
+        }
+        function schedulePush() {
+          if (!syncReady()) return;
+          clearTimeout(pushTimer);
+          setSync("سيُحفظ خلال لحظات...");
+          pushTimer = setTimeout(push, 1500);
+        }
+        function toast(m) {
+          const t = $("#toast");
+          t.textContent = m;
+          t.classList.add("show");
+          clearTimeout(t._t);
+          t._t = setTimeout(() => t.classList.remove("show"), 2400);
+        }
+        function uid() {
+          return String(Date.now()) + Math.random().toString(36).slice(2, 6);
+        }
+        function todayISO() {
+          const d = new Date();
+          d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+          return d.toISOString().slice(0, 10);
+        }
+        function fmtDate(iso) {
+          if (!iso) return "";
+          try {
+            return new Date(iso + "T00:00").toLocaleDateString(
+              "ar-SA-u-nu-latn",
+              { year: "numeric", month: "short", day: "numeric" },
+            );
+          } catch (e) {
+            return iso;
+          }
+        }
+        function monthLabel(ym) {
+          if (!ym) return "بدون تاريخ";
+          try {
+            return new Date(ym + "-01T00:00").toLocaleDateString(
+              "ar-SA-u-nu-latn",
+              { year: "numeric", month: "long" },
+            );
+          } catch (e) {
+            return ym;
+          }
+        }
+        function esc(s) {
+          return String(s).replace(
+            /[&<>"']/g,
+            (m) =>
+              ({
+                "&": "&amp;",
+                "<": "&lt;",
+                ">": "&gt;",
+                '"': "&quot;",
+                "'": "&#39;",
+              })[m],
+          );
+        }
+
+        (function migrate() {
+          if (!manual.length) {
+            let mp = read("acct_personal_v1"),
+              ms = read("acct_savings_v1");
+            if (!ms.length) {
+              const o = read("debt_savings_v1");
+              if (o.length) ms = o;
+            }
+            mp.forEach((m) =>
+              manual.push({
+                id: m.id || uid(),
+                acct: "personal",
+                form: "cash",
+                kind: m.kind,
+                amount: m.amount,
+                label: m.label,
+                date: m.date,
+              }),
+            );
+            ms.forEach((m) =>
+              manual.push({
+                id: m.id || uid(),
+                acct: "savings",
+                form: "cash",
+                kind: m.kind,
+                amount: m.amount,
+                label: m.label,
+                date: m.date,
+              }),
+            );
+          }
+          let ch = false;
+          entries.forEach((e) => {
+            if (!e.allocation) {
+              const acct =
+                e.type === "owedToMe"
+                  ? e.destination === "savings"
+                    ? "savings"
+                    : "personal"
+                  : "personal";
+              e.allocation = [{ acct, form: "cash", amount: e.amount }];
+              ch = true;
+            }
+          });
+          if (manual.length || ch) persist();
+        })();
+
+        // money model: owedToMe => no deduction on lend, deposit on settle. iOwe => deposit on borrow, withdraw on settle.
+        function debtMoves() {
+          const out = [];
+          entries.forEach((e) => {
+            (e.allocation || []).forEach((a) => {
+              if (!(a.amount > 0)) return;
+              if (e.type === "owedToMe") {
+                out.push({
+                  acct: a.acct,
+                  form: a.form,
+                  kind: "withdraw",
+                  amount: a.amount,
+                  label: "سلفة إلى " + e.person,
+                  date: e.date,
+                  auto: true,
+                });
+                if (e.settled)
+                  out.push({
+                    acct: a.acct,
+                    form: a.form,
+                    kind: "deposit",
+                    amount: a.amount,
+                    label: "سداد من " + e.person,
+                    date: e.settledAt || e.date,
+                    auto: true,
+                  });
+              } else {
+                out.push({
+                  acct: a.acct,
+                  form: a.form,
+                  kind: "deposit",
+                  amount: a.amount,
+                  label: "اقتراض من " + e.person,
+                  date: e.date,
+                  auto: true,
+                });
+                if (e.settled)
+                  out.push({
+                    acct: a.acct,
+                    form: a.form,
+                    kind: "withdraw",
+                    amount: a.amount,
+                    label: "سداد إلى " + e.person,
+                    date: e.settledAt || e.date,
+                    auto: true,
+                  });
+              }
+            });
+          });
+          return out;
+        }
+        function expenseMoves() {
+          return expenses.map((x) => ({
+            acct: x.account,
+            form: x.form,
+            kind: "withdraw",
+            amount: x.amount,
+            label: "مصروف: " + x.category,
+            date: x.date,
+            auto: true,
+          }));
+        }
+        function allMoves() {
+          return manual.concat(debtMoves()).concat(expenseMoves());
+        }
+        function balanceFor(acct, form) {
+          return allMoves()
+            .filter((m) => m.acct === acct && m.form === form)
+            .reduce(
+              (s, m) => s + (m.kind === "deposit" ? m.amount : -m.amount),
+              0,
+            );
+        }
+        function acctTotal(acct) {
+          return balanceFor(acct, "cash") + balanceFor(acct, "bank");
+        }
+        function liquidity() {
+          return ACCTS.reduce((s, a) => s + acctTotal(a), 0);
+        }
+        function movesFor(acct) {
+          return allMoves()
+            .filter((m) => m.acct === acct)
+            .sort((a, b) =>
+              String(b.date || "").localeCompare(String(a.date || "")),
+            );
+        }
+
+        // tabs
+        document.querySelectorAll(".tabs button").forEach((b) =>
+          b.addEventListener("click", () => {
+            document
+              .querySelectorAll(".tabs button")
+              .forEach((x) => x.classList.toggle("active", x === b));
+            document
+              .querySelectorAll(".page")
+              .forEach((p) => (p.hidden = p.dataset.page !== b.dataset.tab));
+            window.scrollTo({ top: 0 });
+          }),
+        );
+
+        // accounts
+        function wireAccount(panel) {
+          const acct = panel.dataset.acct;
+          const form = panel.querySelector("[data-form]"),
+            amountInput = panel.querySelector("[data-amount]"),
+            amountLabel = panel.querySelector("[data-amount-label]"),
+            dateInput = panel.querySelector("[data-date]"),
+            labelInput = panel.querySelector("[data-label]"),
+            formSeg = panel.querySelector("[data-formseg]");
+          let kind = null,
+            fForm = "cash";
+          function close() {
+            kind = null;
+            form.classList.remove("show");
+            panel
+              .querySelectorAll(".chip")
+              .forEach((c) => c.classList.remove("active"));
+          }
+          formSeg.addEventListener("click", (e) => {
+            const b = e.target.closest("button");
+            if (!b) return;
+            fForm = b.dataset.formVal;
+            formSeg
+              .querySelectorAll("button")
+              .forEach((x) => x.setAttribute("aria-pressed", x === b));
+          });
+          panel.querySelectorAll(".chip").forEach((chip) =>
+            chip.addEventListener("click", () => {
+              const k = chip.dataset.kind;
+              if (kind === k) {
+                close();
+                return;
+              }
+              kind = k;
+              panel
+                .querySelectorAll(".chip")
+                .forEach((c) => c.classList.toggle("active", c === chip));
+              amountLabel.textContent =
+                k === "deposit" ? "مبلغ الإيداع (ر.س)" : "مبلغ السحب (ر.س)";
+              form.classList.add("show");
+              dateInput.value = "";
+              amountInput.value = "";
+              labelInput.value = "";
+              amountInput.focus();
+            }),
+          );
+          panel.querySelector("[data-today]").addEventListener("click", () => {
+            dateInput.value = todayISO();
+          });
+          panel.querySelector("[data-cancel]").addEventListener("click", close);
+          panel.querySelector("[data-submit]").addEventListener("click", () => {
+            const amount = parseFloat(amountInput.value);
+            if (!(amount > 0)) {
+              toast("أدخل مبلغاً صحيحاً");
+              return;
+            }
+            manual.unshift({
+              id: uid(),
+              acct,
+              form: fForm,
+              kind,
+              amount,
+              label:
+                labelInput.value.trim() ||
+                (kind === "deposit" ? "إيداع" : "سحب"),
+              date: dateInput.value,
+            });
+            persist();
+            render();
+            close();
+            toast(kind === "deposit" ? "تم الإيداع" : "تم السحب");
+          });
+          panel.querySelector("[data-moves]").addEventListener("click", (e) => {
+            const b = e.target.closest("button[data-del]");
+            if (!b) return;
+            manual = manual.filter((x) => x.id !== b.dataset.del);
+            persist();
+            render();
+            toast("تم حذف الحركة");
+          });
+        }
+
+        function renderAccounts() {
+          document.querySelectorAll(".acct-panel").forEach((panel) => {
+            const acct = panel.dataset.acct;
+            const cash = balanceFor(acct, "cash"),
+              bank = balanceFor(acct, "bank"),
+              tot = cash + bank;
+            const balEl = panel.querySelector("[data-bal]");
+            balEl.textContent = money(tot);
+            balEl.style.color = tot < 0 ? "var(--debit)" : "var(--accent)";
+            panel.querySelector("[data-cash]").textContent = money(cash);
+            panel.querySelector("[data-bank]").textContent = money(bank);
+            const moves = movesFor(acct),
+              box = panel.querySelector("[data-moves]");
+            if (!moves.length) {
+              box.innerHTML = `<div class="empty" style="padding:18px"><span>لا حركات بعد</span></div>`;
+              return;
+            }
+            box.innerHTML = moves
+              .map((m) => {
+                const up = m.kind === "deposit";
+                return `<div class="move"><span class="move__amt ${up ? "up" : "down"}">${up ? "+" : "−"}${money(m.amount)}</span><span class="move__form">${FORM_LABEL[m.form] || ""}</span><span class="move__label">${esc(m.label)}</span>${m.auto ? `<span class="move__tag">تلقائي</span>` : ""}${m.date ? `<span class="move__date">${fmtDate(m.date)}</span>` : ""}${m.auto ? "" : `<button class="icon-btn danger" data-del="${m.id}" title="حذف" aria-label="حذف"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6l-1 14H6L5 6"/></svg></button>`}</div>`;
+              })
+              .join("");
+          });
+          $("#totalVal").textContent = money(liquidity());
+          $("#totalSplit").innerHTML =
+            `حسابي: ${money(acctTotal("personal"))}<br>الادخار: ${money(acctTotal("savings"))}`;
+        }
+
+        // allocation
+        let allocTouched = false;
+        function buckets() {
+          const o = [];
+          ACCTS.forEach((a) =>
+            FORMS.forEach((f) =>
+              o.push({ acct: a, form: f, key: a + ":" + f }),
+            ),
+          );
+          return o;
+        }
+        function buildAllocRows() {
+          $("#allocRows").innerHTML = buckets()
+            .map(
+              (b) =>
+                `<div class="alloc__row"><label>${ACCT_LABEL[b.acct]} — ${FORM_LABEL[b.form]}</label><input data-bucket="${b.key}" type="number" step="0.01" min="0" inputmode="decimal" placeholder="0"><button type="button" class="alloc__all" data-allbucket="${b.key}">الكل</button></div>`,
+            )
+            .join("");
+          $("#allocRows")
+            .querySelectorAll("input")
+            .forEach((i) =>
+              i.addEventListener("input", () => {
+                allocTouched = true;
+                updateRemain();
+              }),
+            );
+          $("#allocRows")
+            .querySelectorAll("[data-allbucket]")
+            .forEach((btn) =>
+              btn.addEventListener("click", () => {
+                const total = parseFloat($("#amount").value) || 0;
+                $("#allocRows")
+                  .querySelectorAll("input")
+                  .forEach((i) => (i.value = ""));
+                const t = $("#allocRows").querySelector(
+                  `input[data-bucket="${btn.dataset.allbucket}"]`,
+                );
+                t.value = total > 0 ? total : "";
+                allocTouched = true;
+                updateRemain();
+              }),
+            );
+        }
+        function allocSum() {
+          let s = 0;
+          $("#allocRows")
+            .querySelectorAll("input")
+            .forEach((i) => (s += parseFloat(i.value) || 0));
+          return r2(s);
+        }
+        function updateRemain() {
+          const total = r2(parseFloat($("#amount").value) || 0),
+            rem = r2(total - allocSum());
+          const el = $("#allocRemain");
+          el.textContent =
+            rem === 0
+              ? "موزّع بالكامل ✓"
+              : rem > 0
+                ? `المتبقّي: ${money(rem)}`
+                : `زائد: ${money(-rem)}`;
+          el.className = "alloc__remain " + (rem === 0 ? "ok" : "bad");
+        }
+        function autoFillPrimary() {
+          if (allocTouched) return;
+          const total = parseFloat($("#amount").value) || 0;
+          $("#allocRows")
+            .querySelectorAll("input")
+            .forEach((i) => (i.value = ""));
+          const first = $("#allocRows").querySelector(
+            'input[data-bucket="personal:cash"]',
+          );
+          if (first && total > 0) first.value = total;
+          updateRemain();
+        }
+        function getAllocation() {
+          const o = [];
+          $("#allocRows")
+            .querySelectorAll("input")
+            .forEach((i) => {
+              const v = parseFloat(i.value) || 0;
+              if (v > 0) {
+                const [acct, form] = i.dataset.bucket.split(":");
+                o.push({ acct, form, amount: r2(v) });
+              }
+            });
+          return o;
+        }
+        function setAllocation(al) {
+          $("#allocRows")
+            .querySelectorAll("input")
+            .forEach((i) => (i.value = ""));
+          (al || []).forEach((a) => {
+            const t = $("#allocRows").querySelector(
+              `input[data-bucket="${a.acct}:${a.form}"]`,
+            );
+            if (t) t.value = a.amount;
+          });
+          allocTouched = true;
+          updateRemain();
+        }
+        function updateAllocTitle() {
+          $("#allocTitle").textContent =
+            formType === "owedToMe"
+              ? "المبلغ خرج من (مصدر السلفة)"
+              : "المبلغ دخل في (وين استلمته)";
+        }
+
+        // debt modal
+        $("#typeSeg").addEventListener("click", (e) => {
+          const b = e.target.closest("button");
+          if (!b) return;
+          formType = b.dataset.type;
+          document
+            .querySelectorAll("#typeSeg button")
+            .forEach((x) => x.setAttribute("aria-pressed", x === b));
+          updateAllocTitle();
+        });
+        function setType(t) {
+          formType = t;
+          document
+            .querySelectorAll("#typeSeg button")
+            .forEach((x) =>
+              x.setAttribute("aria-pressed", x.dataset.type === t),
+            );
+          updateAllocTitle();
+        }
+        $("#amount").addEventListener("input", autoFillPrimary);
+        $("#todayBtn").addEventListener("click", () => {
+          $("#date").value = todayISO();
+        });
+
+        const debtModal = $("#debtModal");
+        function openDebt() {
+          debtModal.hidden = false;
+          document.body.style.overflow = "hidden";
+          setTimeout(() => $("#person").focus(), 60);
+        }
+        function closeDebt() {
+          debtModal.hidden = true;
+          document.body.style.overflow = "";
+          resetDebt();
+        }
+        function resetDebt() {
+          $("#editId").value = "";
+          $("#debtForm").reset();
+          $("#date").value = "";
+          setType("owedToMe");
+          allocTouched = false;
+          buildAllocRows();
+          updateRemain();
+          $("#formTitle").textContent = "إضافة دين";
+          $("#submitBtn").textContent = "حفظ";
+        }
+        $("#openAddDebt").addEventListener("click", () => {
+          resetDebt();
+          openDebt();
+        });
+        debtModal.addEventListener("click", (e) => {
+          if (e.target.closest("[data-close]")) closeDebt();
+        });
+        $("#debtForm").addEventListener("submit", (e) => {
+          e.preventDefault();
+          const person = $("#person").value.trim(),
+            amount = r2(parseFloat($("#amount").value)),
+            note = $("#note").value.trim(),
+            date = $("#date").value;
+          if (!person || !(amount > 0)) {
+            toast("أدخل اسم الشخص ومبلغاً صحيحاً");
+            return;
+          }
+          const allocation = getAllocation(),
+            sum = allocSum();
+          if (sum !== amount) {
+            toast(
+              sum < amount
+                ? `ينقص توزيع ${money(amount - sum)}`
+                : `التوزيع يزيد ${money(sum - amount)}`,
+            );
+            return;
+          }
+          const id = $("#editId").value;
+          if (id) {
+            const it = entries.find((x) => x.id === id);
+            if (it)
+              Object.assign(it, {
+                person,
+                amount,
+                note,
+                date,
+                type: formType,
+                allocation,
+              });
+            toast("تم تحديث الدين");
+          } else {
+            entries.unshift({
+              id: uid(),
+              person,
+              amount,
+              note,
+              date,
+              type: formType,
+              allocation,
+              settled: false,
+            });
+            toast("تمت الإضافة");
+          }
+          persist();
+          render();
+          closeDebt();
+        });
+        function startEditDebt(it) {
+          resetDebt();
+          $("#editId").value = it.id;
+          $("#person").value = it.person;
+          $("#amount").value = it.amount;
+          $("#note").value = it.note || "";
+          $("#date").value = it.date || "";
+          setType(it.type);
+          setAllocation(it.allocation);
+          $("#formTitle").textContent = "تعديل دين";
+          $("#submitBtn").textContent = "تحديث";
+          openDebt();
+        }
+
+        // debts list
+        document.querySelectorAll(".filters button").forEach((b) =>
+          b.addEventListener("click", () => {
+            filter = b.dataset.filter;
+            document
+              .querySelectorAll(".filters button")
+              .forEach((x) => x.classList.toggle("active", x === b));
+            renderDebts();
+          }),
+        );
+        $("#searchInput").addEventListener("input", (e) => {
+          search = e.target.value.trim().toLowerCase();
+          renderDebts();
+        });
+        $("#clearAll").addEventListener("click", () => {
+          if (!entries.length && !manual.length) {
+            toast("لا يوجد شيء لمسحه");
+            return;
+          }
+          if (
+            confirm(
+              "مسح كل الديون وحركات المحافظ؟ (المصاريف ما تتأثر) لا يمكن التراجع.",
+            )
+          ) {
+            entries = [];
+            manual = [];
+            persist();
+            render();
+            toast("تم المسح");
+          }
+        });
+
+        function totals() {
+          let c = 0,
+            d = 0;
+          entries.forEach((e) => {
+            if (e.settled) return;
+            if (e.type === "owedToMe") c += e.amount;
+            else d += e.amount;
+          });
+          return { c, d, net: c - d };
+        }
+        function allocText(e) {
+          const a = e.allocation || [];
+          if (!a.length) return "";
+          if (a.length === 1)
+            return `${ACCT_LABEL[a[0].acct]}·${FORM_LABEL[a[0].form]}`;
+          return `${a.length} محافظ`;
+        }
+        function renderDebtsSummary() {
+          const { c, d, net } = totals();
+          $("#sumCredit").textContent = money(c);
+          $("#sumDebit").textContent = money(d);
+          const n = $("#netValue");
+          n.textContent = money(Math.abs(net));
+          n.style.color =
+            net > 0 ? "var(--credit)" : net < 0 ? "var(--debit)" : "var(--net)";
+          $("#netHint").textContent =
+            net > 0
+              ? "صافي ما لك عند الناس"
+              : net < 0
+                ? "صافي ما عليك للناس"
+                : "متوازن";
+          const tot = c + d;
+          $("#barCredit").style.width = (tot ? (c / tot) * 100 : 50) + "%";
+          $("#barDebit").style.width = (tot ? (d / tot) * 100 : 50) + "%";
+        }
+        function renderDebtsList() {
+          const list = $("#list");
+          let rows = entries.filter(
+            (e) => filter === "all" || e.type === filter,
+          );
+          if (search)
+            rows = rows.filter(
+              (e) =>
+                e.person.toLowerCase().includes(search) ||
+                (e.note || "").toLowerCase().includes(search),
+            );
+          if (!rows.length) {
+            list.innerHTML = `<div class="empty"><strong>${entries.length ? "لا نتائج" : "ابدأ بإضافة أول دين"}</strong><span>${entries.length ? "غيّر التصفية أو البحث" : "اضغط «دين جديد» بالأعلى"}</span></div>`;
+            return;
+          }
+          list.innerHTML = rows
+            .map((e) => {
+              const isC = e.type === "owedToMe";
+              return `<div class="item ${e.settled ? "settled" : ""}" data-type="${e.type}">
+        <div class="item__body"><p class="item__person">${esc(e.person)}</p>
+          <div class="item__meta"><span class="badge">${isC ? "من" : "في"} ${esc(allocText(e))}</span>${e.note ? `<span class="item__note">${esc(e.note)}</span>` : ""}${e.date ? `<span class="item__date">${fmtDate(e.date)}</span>` : ""}${e.settled ? `<span class="item__date">• ${isC ? "مُسترجع" : "مدفوع"}</span>` : ""}</div>
+        </div>
+        <div class="item__money"><span class="item__type ${isC ? "c" : "d"}">${isC ? "لي" : "عليّ"}</span><span class="item__amount ${isC ? "c" : "d"}">${money(e.amount)}</span></div>
+        <div class="item__actions">
+          <button class="icon-btn" data-act="settle" data-id="${e.id}" title="${e.settled ? "تراجع" : "تسوية"}" aria-label="تسوية"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></button>
+          <button class="icon-btn" data-act="edit" data-id="${e.id}" title="تعديل" aria-label="تعديل"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button>
+          <button class="icon-btn danger" data-act="del" data-id="${e.id}" title="حذف" aria-label="حذف"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/></svg></button>
+        </div></div>`;
+            })
+            .join("");
+        }
+        function renderDebts() {
+          renderDebtsSummary();
+          renderDebtsList();
+        }
+        $("#list").addEventListener("click", (e) => {
+          const btn = e.target.closest("button[data-act]");
+          if (!btn) return;
+          const it = entries.find((x) => x.id === btn.dataset.id);
+          if (!it) return;
+          const a = btn.dataset.act;
+          if (a === "settle") {
+            it.settled = !it.settled;
+            it.settledAt = it.settled ? todayISO() : null;
+            persist();
+            render();
+            toast(
+              it.settled
+                ? it.type === "owedToMe"
+                  ? "تم السداد — دخلت محفظتك"
+                  : "تم السداد — خرجت من محفظتك"
+                : "تم التراجع",
+            );
+          } else if (a === "edit") {
+            startEditDebt(it);
+          } else if (a === "del") {
+            if (confirm(`حذف دين «${it.person}»؟`)) {
+              entries = entries.filter((x) => x.id !== it.id);
+              persist();
+              render();
+              toast("تم الحذف");
+            }
+          }
+        });
+
+        // expenses
+        let expAcct = "personal",
+          expForm = "cash";
+        $("#expAcctSeg").addEventListener("click", (e) => {
+          const b = e.target.closest("button");
+          if (!b) return;
+          expAcct = b.dataset.acctval;
+          document
+            .querySelectorAll("#expAcctSeg button")
+            .forEach((x) => x.setAttribute("aria-pressed", x === b));
+        });
+        $("#expFormSeg").addEventListener("click", (e) => {
+          const b = e.target.closest("button");
+          if (!b) return;
+          expForm = b.dataset.formVal;
+          document
+            .querySelectorAll("#expFormSeg button")
+            .forEach((x) => x.setAttribute("aria-pressed", x === b));
+        });
+        $("#expTodayBtn").addEventListener("click", () => {
+          $("#expDate").value = todayISO();
+        });
+        const expModal = $("#expModal");
+        function openExp() {
+          expModal.hidden = false;
+          document.body.style.overflow = "hidden";
+          setTimeout(() => $("#expCategory").focus(), 60);
+        }
+        function closeExp() {
+          expModal.hidden = true;
+          document.body.style.overflow = "";
+          resetExp();
+        }
+        function setExpAcct(a) {
+          expAcct = a;
+          document
+            .querySelectorAll("#expAcctSeg button")
+            .forEach((x) =>
+              x.setAttribute("aria-pressed", x.dataset.acctval === a),
+            );
+        }
+        function setExpForm(f) {
+          expForm = f;
+          document
+            .querySelectorAll("#expFormSeg button")
+            .forEach((x) =>
+              x.setAttribute("aria-pressed", x.dataset.formVal === f),
+            );
+        }
+        function resetExp() {
+          $("#expEditId").value = "";
+          $("#expForm").reset();
+          $("#expDate").value = "";
+          setExpAcct("personal");
+          setExpForm("cash");
+          $("#expTitle").textContent = "إضافة مصروف";
+          $("#expSubmitBtn").textContent = "حفظ";
+        }
+        $("#openAddExp").addEventListener("click", () => {
+          resetExp();
+          openExp();
+        });
+        expModal.addEventListener("click", (e) => {
+          if (e.target.closest("[data-close]")) closeExp();
+        });
+        $("#expForm").addEventListener("submit", (e) => {
+          e.preventDefault();
+          const category = $("#expCategory").value.trim(),
+            amount = r2(parseFloat($("#expAmount").value)),
+            note = $("#expNote").value.trim(),
+            date = $("#expDate").value;
+          if (!category || !(amount > 0)) {
+            toast("أدخل الفئة ومبلغاً صحيحاً");
+            return;
+          }
+          const id = $("#expEditId").value;
+          if (id) {
+            const x = expenses.find((z) => z.id === id);
+            if (x)
+              Object.assign(x, {
+                category,
+                amount,
+                note,
+                date,
+                account: expAcct,
+                form: expForm,
+              });
+            toast("تم تحديث المصروف");
+          } else {
+            expenses.unshift({
+              id: uid(),
+              category,
+              amount,
+              note,
+              date,
+              account: expAcct,
+              form: expForm,
+            });
+            toast("تمت إضافة المصروف");
+          }
+          persist();
+          render();
+          closeExp();
+        });
+        function startEditExp(x) {
+          resetExp();
+          $("#expEditId").value = x.id;
+          $("#expCategory").value = x.category;
+          $("#expAmount").value = x.amount;
+          $("#expNote").value = x.note || "";
+          $("#expDate").value = x.date || "";
+          setExpAcct(x.account || "personal");
+          setExpForm(x.form || "cash");
+          $("#expTitle").textContent = "تعديل مصروف";
+          $("#expSubmitBtn").textContent = "تحديث";
+          openExp();
+        }
+        $("#expSearch").addEventListener("input", (e) => {
+          expSearchTxt = e.target.value.trim().toLowerCase();
+          renderExpenses();
+        });
+        $("#clearExp").addEventListener("click", () => {
+          if (!expenses.length) {
+            toast("لا مصاريف");
+            return;
+          }
+          if (confirm("مسح كل المصاريف نهائياً؟ لا يمكن التراجع.")) {
+            expenses = [];
+            persist();
+            render();
+            toast("تم مسح المصاريف");
+          }
+        });
+
+        function renderExpenses() {
+          const curMonth = todayISO().slice(0, 7);
+          const monthTotal = expenses
+            .filter((x) => (x.date || "").slice(0, 7) === curMonth)
+            .reduce((s, x) => s + x.amount, 0);
+          const allTotal = expenses.reduce((s, x) => s + x.amount, 0);
+          $("#expMonthTotal").textContent = money(monthTotal);
+          $("#expAllTotal").textContent = money(allTotal);
+          const cats = {};
+          expenses
+            .filter((x) => (x.date || "").slice(0, 7) === curMonth)
+            .forEach(
+              (x) => (cats[x.category] = (cats[x.category] || 0) + x.amount),
+            );
+          const catArr = Object.entries(cats).sort((a, b) => b[1] - a[1]);
+          $("#expCats").innerHTML = catArr.length
+            ? catArr
+                .map(
+                  ([k, v]) =>
+                    `<span class="cat-chip">${esc(k)}: ${money(v)}</span>`,
+                )
+                .join("")
+            : `<span class="cat-chip" style="background:#EEF1F5;color:#54616E">لا مصاريف هذا الشهر</span>`;
+
+          let rows = expenses.slice();
+          if (expSearchTxt)
+            rows = rows.filter(
+              (x) =>
+                x.category.toLowerCase().includes(expSearchTxt) ||
+                (x.note || "").toLowerCase().includes(expSearchTxt),
+            );
+          const list = $("#expList");
+          if (!rows.length) {
+            list.innerHTML = `<div class="empty"><strong>${expenses.length ? "لا نتائج" : "ابدأ بتسجيل أول مصروف"}</strong><span>${expenses.length ? "غيّر البحث" : "اضغط «+ مصروف» بالأعلى"}</span></div>`;
+            return;
+          }
+          rows.sort((a, b) =>
+            String(b.date || "").localeCompare(String(a.date || "")),
+          );
+          const groups = {};
+          rows.forEach((x) => {
+            const ym = (x.date || "").slice(0, 7) || "none";
+            (groups[ym] = groups[ym] || []).push(x);
+          });
+          const order = Object.keys(groups).sort((a, b) => b.localeCompare(a));
+          list.innerHTML = order
+            .map((ym) => {
+              const tot = groups[ym].reduce((s, x) => s + x.amount, 0);
+              const head = `<div class="month-head"><span>${ym === "none" ? "بدون تاريخ" : monthLabel(ym)}</span><span>${money(tot)}</span></div>`;
+              const items = groups[ym]
+                .map(
+                  (x) => `<div class="item" data-exp>
+        <div class="item__body"><p class="item__person">${esc(x.category)}</p>
+          <div class="item__meta"><span class="badge">${ACCT_LABEL[x.account] || "-"}·${FORM_LABEL[x.form] || "-"}</span>${x.note ? `<span class="item__note">${esc(x.note)}</span>` : ""}${x.date ? `<span class="item__date">${fmtDate(x.date)}</span>` : ""}</div>
+        </div>
+        <div class="item__money"><span class="item__type e">مصروف</span><span class="item__amount e">−${money(x.amount)}</span></div>
+        <div class="item__actions">
+          <button class="icon-btn" data-eact="edit" data-id="${x.id}" title="تعديل" aria-label="تعديل"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button>
+          <button class="icon-btn danger" data-eact="del" data-id="${x.id}" title="حذف" aria-label="حذف"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/></svg></button>
+        </div></div>`,
+                )
+                .join("");
+              return head + items;
+            })
+            .join("");
+        }
+        $("#expList").addEventListener("click", (e) => {
+          const btn = e.target.closest("button[data-eact]");
+          if (!btn) return;
+          const x = expenses.find((z) => z.id === btn.dataset.id);
+          if (!x) return;
+          if (btn.dataset.eact === "edit") startEditExp(x);
+          else if (btn.dataset.eact === "del") {
+            if (confirm(`حذف مصروف «${x.category}»؟`)) {
+              expenses = expenses.filter((z) => z.id !== x.id);
+              persist();
+              render();
+              toast("تم الحذف");
+            }
+          }
+        });
+
+        // backup
+        function download(name, text, type) {
+          const blob = new Blob([text], { type });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = name;
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          setTimeout(() => URL.revokeObjectURL(url), 1500);
+        }
+        function csvCell(v) {
+          v = String(v == null ? "" : v);
+          return /[",\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v;
+        }
+        function toCSV(rows) {
+          return (
+            "\ufeff" + rows.map((r) => r.map(csvCell).join(",")).join("\r\n")
+          );
+        }
+        $("#exportJson").addEventListener("click", () => {
+          download(
+            "debt-data-" + todayISO() + ".json",
+            snapshot(),
+            "application/json",
+          );
+          toast("تم تصدير JSON");
+        });
+        $("#exportExpCsv").addEventListener("click", () => {
+          const rows = [
+            ["التاريخ", "الفئة", "المبلغ", "الحساب", "الصورة", "ملاحظة"],
+          ];
+          expenses
+            .slice()
+            .sort((a, b) =>
+              String(b.date || "").localeCompare(String(a.date || "")),
+            )
+            .forEach((x) =>
+              rows.push([
+                x.date || "",
+                x.category,
+                x.amount,
+                ACCT_LABEL[x.account] || "",
+                FORM_LABEL[x.form] || "",
+                x.note || "",
+              ]),
+            );
+          download("expenses-" + todayISO() + ".csv", toCSV(rows), "text/csv");
+          toast("تم تصدير المصاريف");
+        });
+        $("#exportDebtCsv").addEventListener("click", () => {
+          const rows = [
+            [
+              "الشخص",
+              "النوع",
+              "المبلغ",
+              "الحالة",
+              "التوزيع",
+              "التاريخ",
+              "ملاحظة",
+            ],
+          ];
+          entries.forEach((e) =>
+            rows.push([
+              e.person,
+              e.type === "owedToMe" ? "لي" : "عليّ",
+              e.amount,
+              e.settled ? "مسوّى" : "قائم",
+              (e.allocation || [])
+                .map(
+                  (a) =>
+                    `${ACCT_LABEL[a.acct]}·${FORM_LABEL[a.form]}:${a.amount}`,
+                )
+                .join(" | "),
+              e.date || "",
+              e.note || "",
+            ]),
+          );
+          download("debts-" + todayISO() + ".csv", toCSV(rows), "text/csv");
+          toast("تم تصدير الديون");
+        });
+        $("#exportMovesCsv").addEventListener("click", () => {
+          const rows = [
+            [
+              "الحساب",
+              "الصورة",
+              "النوع",
+              "المبلغ",
+              "الوصف",
+              "التاريخ",
+              "المصدر",
+            ],
+          ];
+          allMoves()
+            .slice()
+            .sort((a, b) =>
+              String(b.date || "").localeCompare(String(a.date || "")),
+            )
+            .forEach((m) =>
+              rows.push([
+                ACCT_LABEL[m.acct] || "",
+                FORM_LABEL[m.form] || "",
+                m.kind === "deposit" ? "إيداع" : "سحب",
+                m.amount,
+                m.label || "",
+                m.date || "",
+                m.auto ? "تلقائي" : "يدوي",
+              ]),
+            );
+          download(
+            "wallet-moves-" + todayISO() + ".csv",
+            toCSV(rows),
+            "text/csv",
+          );
+          toast("تم تصدير الحركات");
+        });
+        $("#importBtn").addEventListener("click", () =>
+          $("#importFile").click(),
+        );
+        $("#importFile").addEventListener("change", (e) => {
+          const f = e.target.files[0];
+          if (!f) return;
+          const reader = new FileReader();
+          reader.onload = () => {
+            try {
+              const d = JSON.parse(reader.result);
+              if (!d || typeof d !== "object") throw 0;
+              if (
+                !confirm("الاستيراد سيستبدل بياناتك الحالية بالكامل. متابعة؟")
+              ) {
+                e.target.value = "";
+                return;
+              }
+              entries = Array.isArray(d.entries) ? d.entries : [];
+              manual = Array.isArray(d.manual) ? d.manual : [];
+              expenses = Array.isArray(d.expenses) ? d.expenses : [];
+              persist();
+              render();
+              toast("تم الاستيراد بنجاح");
+            } catch (err) {
+              toast("ملف JSON غير صالح");
+            }
+            e.target.value = "";
+          };
+          reader.readAsText(f);
+        });
+
+        document.addEventListener("keydown", (e) => {
+          if (e.key === "Escape") {
+            if (!debtModal.hidden) closeDebt();
+            if (!expModal.hidden) closeExp();
+          }
+        });
+
+        // sync settings UI
+        function fillSyncForm() {
+          $("#syncToken").value = sync.token || "";
+          $("#syncOwner").value = sync.owner || "";
+          $("#syncRepo").value = sync.repo || "";
+          $("#syncBranch").value = sync.branch || "main";
+          $("#syncPath").value = sync.path || "data.json";
+        }
+        $("#syncSave").addEventListener("click", () => {
+          sync = {
+            token: $("#syncToken").value.trim(),
+            owner: $("#syncOwner").value.trim(),
+            repo: $("#syncRepo").value.trim(),
+            branch: $("#syncBranch").value.trim() || "main",
+            path: $("#syncPath").value.trim() || "data.json",
+          };
+          try {
+            localStorage.setItem(SKEY, JSON.stringify(sync));
+          } catch (e) {}
+          syncSha = null;
+          if (syncReady()) {
+            setSync("تم الحفظ — جارٍ المزامنة...");
+            pull();
+          } else {
+            setSync("الإعدادات ناقصة (التوكن/الحساب/المستودع)");
+          }
+          toast("تم حفظ إعدادات المزامنة");
+        });
+        $("#syncPull").addEventListener("click", () => {
+          if (!syncReady()) {
+            toast("أكمل الإعدادات أولاً");
+            return;
+          }
+          if (
+            confirm("سحب البيانات من GitHub سيستبدل بيانات هذا الجهاز. متابعة؟")
+          )
+            pull();
+        });
+        $("#syncPush").addEventListener("click", () => {
+          if (!syncReady()) {
+            toast("أكمل الإعدادات أولاً");
+            return;
+          }
+          push();
+        });
+
+        function render() {
+          renderAccounts();
+          renderDebts();
+          renderExpenses();
+        }
+        document.querySelectorAll(".acct-panel").forEach(wireAccount);
+        buildAllocRows();
+        updateAllocTitle();
+        updateRemain();
+        fillSyncForm();
+        render();
+        if (syncReady()) {
+          pull();
+        } // اسحب أحدث نسخة عند فتح الصفحة
+      })();
+    </script>
+  </body>
+</html>
