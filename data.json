@@ -1,0 +1,26 @@
+{
+  "version": 6,
+  "exportedAt": "2026-06-13T09:36:56.285Z",
+  "entries": [],
+  "manual": [
+    {
+      "id": "1781342994482m8th",
+      "acct": "savings",
+      "form": "bank",
+      "kind": "deposit",
+      "amount": 19000,
+      "label": "إيداع",
+      "date": ""
+    },
+    {
+      "id": "1781342985357fsat",
+      "acct": "personal",
+      "form": "bank",
+      "kind": "deposit",
+      "amount": 100,
+      "label": "إيداع",
+      "date": ""
+    }
+  ],
+  "expenses": []
+}
